@@ -1,39 +1,41 @@
 ---
 title: "Obtaining host-parasite occurence data from Genbank"
 author: "Andrew Park"
-
-output: html_document
+output:
+  pdf_document: default
+  html_document: default
 ---
 
-```{r, libLoad}
+```{r libLoad, message=F}
 library(genbankr)
 library(rentrez)
 library(stringr)
+library(tibble)
+library(dplyr)
+library(magrittr)
 ```
 
 
-```{r}
+```{r fnDef, message=F}
 findHostsbySeq<-function(x){
-  #
-  #ARGS: x=character parasite latin binom
-  para.id<-entrez_search(db="nucleotide",term=x)
-  col1<-rep(x,length(para.id$ids)) #para name
-  col2<-character(length(col1))#host name
-  col3<-para.id$ids #uid (NCBI)
-  col4<-character(length(col1))# acc #
-  for (i in 1:length(col2)){
-    para.acc<-entrez_fetch(db="sequences",id=para.id$ids[i],rettype="acc")
+  # FN: finds hosts of parasite based on genbank sequences
+  # ARGS: x=character parasite latin binom
+  # RTN: df=tibble(para.name,host.name,uid,acc.num)
+  df<-tibble(para.name=character(),host.name=character(),uid=character(),acc.num=character())
+  para.uid<-entrez_search(db="nucleotide",term=x)
+  for (i in para.uid$ids){
+    para.acc<-entrez_fetch(db="sequences",id=i,rettype="acc")
     para.acc<-str_replace_all(para.acc,"\n","")
-    z<-readGenBank(GBAccession(para.acc),ret.seq=F,partial=T)
-    col2[i]<-z@sources@elementMetadata@listData$host
-    col4[i]<-para.acc
+    host<-ifelse(para.acc!="",readGenBank(GBAccession(para.acc),ret.seq=F,partial=T,verbose=F)@sources@elementMetadata@listData$host,"")
+    tmp<-tibble(para.name=x,host.name=host,uid=i,acc.num=para.acc)
+    df<-bind_rows(df,tmp)
   }
-  df<-as.data.frame(cbind(col1,col2,col3,col4))
-    names(df)<-c("para.name","host.name","uid","acc.num")
-    return(df)
+  df %<>% filter(host.name!="" & host.name!=x)
+  return(df)
 }
+```
 
-q<-findHostsbySeq("Eimeria lancasterensis")
 
-
+```{r test, message=F, warning=F}
+q<-findHostsbySeq("Amblyomma ovale") %>% print
 ```
