@@ -16,7 +16,7 @@ library(magrittr)
 ```
 
 
-```{r fnDef, message=F}
+```{r fnDef, message=F, tidy=TRUE, tidy.opts=list(width.cutoff=60)}
 findHostsbySeq<-function(x){
   # FN: finds hosts of parasite based on genbank sequences
   # ARGS: x=character parasite latin binom
