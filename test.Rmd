@@ -1,0 +1,39 @@
+---
+title: "Obtaining host-parasite occurence data from Genbank"
+author: "Andrew Park"
+
+output: html_document
+---
+
+```{r, libLoad}
+library(genbankr)
+library(rentrez)
+library(stringr)
+```
+
+
+```{r}
+findHostsbySeq<-function(x){
+  #
+  #ARGS: x=character parasite latin binom
+  para.id<-entrez_search(db="nucleotide",term=x)
+  col1<-rep(x,length(para.id$ids)) #para name
+  col2<-character(length(col1))#host name
+  col3<-para.id$ids #uid (NCBI)
+  col4<-character(length(col1))# acc #
+  for (i in 1:length(col2)){
+    para.acc<-entrez_fetch(db="sequences",id=para.id$ids[i],rettype="acc")
+    para.acc<-str_replace_all(para.acc,"\n","")
+    z<-readGenBank(GBAccession(para.acc),ret.seq=F,partial=T)
+    col2[i]<-z@sources@elementMetadata@listData$host
+    col4[i]<-para.acc
+  }
+  df<-as.data.frame(cbind(col1,col2,col3,col4))
+    names(df)<-c("para.name","host.name","uid","acc.num")
+    return(df)
+}
+
+q<-findHostsbySeq("Eimeria lancasterensis")
+
+
+```
