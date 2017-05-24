@@ -14,10 +14,7 @@ output:
 #biocLite("genbankr")
 library(genbankr)
 
-
 library(rentrez)
-library(stringr)
-library(tibble)
 library(plyr)
 library(dplyr)
 library(magrittr)
@@ -71,7 +68,7 @@ findHostsbySeq <- function(x, retmax=1000, parallel=FALSE, cores=NA){
 
 		for(i in para.uid){
 		  parAcc <- entrez_fetch(db="sequences", id=i, rettype="acc")
-		  para.acc[i] <- str_replace_all(parAcc,"\n","")
+		  para.acc[i] <- gsub("\n","", x=parAcc)
 		  if(para.acc[i] == ""){
 		    host[i] <- NA
 		  }else{
