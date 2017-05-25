@@ -26,7 +26,8 @@ findHostsbySeq<-function(x){
   for (i in para.uid$ids){
     para.acc<-entrez_fetch(db="sequences",id=i,rettype="acc")
     para.acc<-str_replace_all(para.acc,"\n","")
-    host<-ifelse(para.acc!="",readGenBank(GBAccession(para.acc),ret.seq=F,partial=T,verbose=F)@sources@elementMetadata@listData$host,"")
+    print(para.acc)
+    host<-ifelse(para.acc!="",ifelse(is.null(readGenBank(GBAccession(para.acc),ret.seq=F,partial=T,verbose=F)@sources@elementMetadata@listData$host),"",readGenBank(GBAccession(para.acc),ret.seq=F,partial=T,verbose=F)@sources@elementMetadata@listData$host),"")
     tmp<-tibble(para.name=x,host.name=host,uid=i,acc.num=para.acc)
     df<-bind_rows(df,tmp)
   }
@@ -38,4 +39,18 @@ findHostsbySeq<-function(x){
 
 ```{r test, message=F, warning=F}
 q<-findHostsbySeq("Amblyomma ovale") %>% print
+#q<-findHostsbySeq("Yersinia pestis") %>% print
+
+
+#my.paras<-c("Leptospira interrogans","Yersinia pestis", "Ambylomma ovale")
+my.paras<-c("Strongyloides stercoralis","Loa loa","Enterobius vermicularis","Toxoplasma gondii")
+
+df<-tibble(para.name=character(),host.name=character(),uid=character(),acc.num=character())
+
+for (i in my.paras){
+  df<-bind_rows(df,findHostsbySeq(i))
+}
+
+# WHY ARE WE GETTING THIS ACCESSION NUMBER: NM_001286060.1 ??
+
 ```
